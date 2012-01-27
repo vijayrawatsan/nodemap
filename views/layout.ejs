@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<title><%= title %></title>
+<link href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script type="text/javascript" src="/nowjs/now.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	$('#locationCheck').attr('checked',true);
+	$('#locationCheck').click(function(){
+	    $('#cord').toggle();
+	});
+});
+now.ready(function(){
+	now.addMarkerClient = function(data) {
+		addMarker(data);
+	};
+});
+var message = {
+	owner : "",
+	message : "",
+	latitude : 0.0,
+	longitude: 0.0
+};
+
+var image = '/images/dot.png';
+var map = null;
+function initialize() {
+	var mapOptions = {
+		maxZoom: 9,
+		minZoom:2,
+		zoom: 2,
+		center: new google.maps.LatLng(27, 30),
+		mapTypeControl: false,
+		streetViewControl: false            
+	};
+	var mapType = new google.maps.StyledMapType([
+	    {
+		featureType: "all",
+		elementType: "all",
+		stylers: [
+		    { visibility: "off" },  // Hide everything
+		    { lightness: 100 }  // Makes the land white
+		]
+	    }, {
+		featureType: "water",
+		elementType: "geometry",
+		stylers: [
+		    { visibility: "on" },  // Show water, but no labels
+		    { lightness: -9 },  // Must be < 0 to compensate for the "all" lightness
+		    { saturation: -100 }
+		]
+	    }
+	]);
+	map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+	map.mapTypes.set('styledMapType', mapType);
+	map.setMapTypeId('styledMapType');
+	
+	var messages = JSON.parse($("#messages").html());
+	var size = messages.length;
+	for(var i=0; i<messages.length; i++){
+		message = messages[i];
+		if(size -i < 50 ) {
+			setTimeout((function(msg) {
+				return function() {
+				    addMarker(msg);
+				}
+		    	})(message), i*400 + Math.random()*500+500);
+		}else{
+			addMarkerDefault(message);		
+		}
+	}
+}
+
+function addMarker(message){
+	var marker = new google.maps.Marker({
+		map: map,
+		animation: google.maps.Animation.DROP,
+		position: new google.maps.LatLng(message.latitude,message.longitude),
+		icon: image
+	});
+	var infowindow = new google.maps.InfoWindow({
+		content: message.owner+" : "+message.message
+	});
+	addNewListener(map,marker,infowindow);
+}
+
+function addMarkerDefault(message){
+	var marker = new google.maps.Marker({
+		map: map,
+		position: new google.maps.LatLng(message.latitude,message.longitude),
+		icon: image
+	});
+	var infowindow = new google.maps.InfoWindow({
+		content: message.owner+" : "+message.message
+	});
+	addNewListener(map,marker,infowindow);
+}
+
+function  addNewListener(map, marker, infowindow) {
+	google.maps.event.addListener(marker, 'mouseover', function() {
+		  infowindow.open(map,marker);
+	});
+	google.maps.event.addListener(marker, 'mouseout', function() {
+		  infowindow.close(map,marker);
+	});
+}
+ 
+function getGeoLocation(){
+	var msg = null;
+	if ($('#owner').val()=="" || 	$('#message').val()=="" ){
+		alert("Name or Message can't be empty");
+		return;		
+	}
+	if(!($('#locationCheck').is(':checked'))){
+		if($('#latitude').val()=="" || $('#longitude').val()=="" || isNaN($('#latitude').val()) || isNaN($('#longitude').val())){
+			alert('Please provide correct latitude/ longitude values');
+			return;
+		}
+	}
+	if($('#locationCheck').is(':checked')){
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(function(loc){
+				var newMsg = {
+					owner : $('#owner').val(),
+					message : $('#message').val(),
+		 			latitude : loc.coords.latitude,
+					longitude: loc.coords.longitude
+				};
+				now.addMarkerServer(newMsg);
+				$('#owner').val("");
+				$('#message').val("");
+				$('#latitude').val("");
+				$('#longitude').val("");
+		   	}); 
+		   	return;
+		}
+		else {
+			//returning some default location
+			console.log("Error geolocation..Sending defualt values");
+			msg = {
+				owner : "Default",
+				message : "Default",
+	 			latitude : 27,
+				longitude: 30
+			};
+		}
+	}else {
+			msg = {
+				owner : $('#owner').val(),
+				message : $('#message').val(),
+	 			latitude : $('#latitude').val(),
+				longitude: $('#longitude').val()
+			};
+	}
+	now.addMarkerServer(msg);
+	$('#owner').val("");
+	$('#message').val("");
+	$('#latitude').val("");
+	$('#longitude').val("");
+	
+}
+</script>
+</head>
+<body onload="initialize();">
+<%- body %>  
+</body>
+</html>

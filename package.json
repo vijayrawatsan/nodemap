@@ -1,0 +1,10 @@
+{
+    "name": "nodemap"
+  , "version": "0.0.1"
+  , "dependencies": {
+      "express": ""
+    , "ejs": ""
+    , "now": ""
+    , "mongojs" : ""
+  }
+}

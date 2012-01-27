@@ -1,0 +1,15 @@
+<div id="map_canvas" ></div>
+<div id="form-wrapper" style="z-index: 1000002; position: absolute; right: 0px; bottom: 0px; ">
+	<div id="form1">
+		Name : <input id="owner" type="text" /><br/>
+		Message : <input id="message" type="text" /><br/>
+		<input id="locationCheck" type="checkbox" >Use my location</input><br/>
+		<div id="cord" style="display:none;">
+			Latitude : <input id="latitude" type="text" /><br/>
+			Longitude : <input id="longitude" type="text" />
+		</div>
+		<input type="button" value="Submit" onclick="getGeoLocation();"/>
+	</div>
+</div>
+<div id="messages" style="display:none;"><%=messages%></div>
+<div id="author" style="display:none"><a href="vijayrawatsan.wordpress.com">Vijay Rawat</a></div>
